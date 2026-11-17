@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Token Radar — pre-token protocols ranked by implied value</title>
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<a class="skip" href="#board">Skip to the board</a>
+<header class="top">
+  <div class="top-in">
+    <div>
+      <h1><span class="dot" aria-hidden="true"></span>Token Radar</h1>
+      <p class="sub">Every protocol DefiLlama tracks that records no token, ranked by what its token would be worth if the protocol's record stayed as it is.</p>
+    </div>
+    <div class="meta" id="meta"></div>
+  </div>
+</header>
+<main id="board" tabindex="-1">
+  <section class="stats" id="stats" aria-label="Board summary"></section>
+  <section class="spot" id="spot" aria-label="Top three"></section>
+
+  <nav class="tabs" aria-label="Views">
+    <button type="button" data-tab="board" class="on">Board</button>
+    <button type="button" data-tab="live">Live tokens — the comparables</button>
+    <button type="button" data-tab="model">How the model works</button>
+  </nav>
+
+  <section id="view-board">
+    <div class="controls" id="controls">
+      <label>Search <input id="q" type="search" placeholder="name or slug…" autocomplete="off"></label>
+      <label>Category <select id="category"><option value="all">All categories</option></select></label>
+      <label>Chain <select id="chain"><option value="all">All chains</option></select></label>
+      <label>Min TVL <select id="mintvl">
+        <option value="0">Any</option>
+        <option value="50000000">$50M — watchlist floor</option>
+        <option value="100000000">$100M</option>
+        <option value="500000000">$500M</option>
+        <option value="1000000000">$1B</option>
+      </select></label>
+      <label class="chk"><input id="wl" type="checkbox"> Watchlist only</label>
+      <label>Sort <select id="sort">
+        <option value="implied">Implied value ↓</option>
+        <option value="tvl">TVL ↓</option>
+        <option value="growth">7-day growth ↓</option>
+        <option value="age">Age ↓</option>
+        <option value="name">Name A–Z</option>
+      </select></label>
+    </div>
+    <p class="count" id="count" aria-live="polite"></p>
+    <div id="detail"></div>
+    <div class="tablewrap">
+      <table id="table">
+        <thead><tr>
+          <th data-k="rank">#</th><th data-k="name">Protocol</th><th data-k="category">Category</th>
+          <th>Chains</th><th data-k="tvl">TVL</th><th data-k="growth">7d</th><th data-k="age">Age</th>
+          <th data-k="implied">Implied value</th><th data-k="multiple">Multiple</th><th>Confidence</th>
+        </tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+    <p class="more"><button type="button" id="more">Show all rows</button></p>
+  </section>
+
+  <section id="view-live" hidden>
+    <p class="lede">These protocols already trade, so the board shows the market's own value for them — never a model's. They are the comparables the multiples come from: each category's multiple is the median market-cap-to-TVL of its live protocols in this same snapshot.</p>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Protocol</th><th>Category</th><th>Chains</th><th>TVL</th><th>Market cap</th><th>Mcap / TVL</th><th>7d</th></tr></thead>
+        <tbody id="live-rows"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="view-model" hidden>
+    <h2>How the model works</h2>
+    <p class="lede">Implied value is the entry's own claim, never make.fun's. It follows only from the snapshot's own figures — TVL, seven-day growth, how long the protocol has run with no token, and how many chains it runs on — priced off the market's own comparables.</p>
+    <pre class="formula">implied = TVL × multiple × growth × maturity × breadth
+multiple   median mcap/TVL of live protocols in the same category (≥3),
+           else the median across all live protocols; clamped to [0.02, 1.50]
+growth     1 + clamp(change_7d, −50, +100)% × 0.5                 in [0.75, 1.50]
+maturity   0.7 + min(age_days, 1095) / 1095 × 0.3                 in [0.70, 1.00]
+breadth    1 + 0.02 × min(chains − 1, 5)                          in [1.00, 1.10]</pre>
+    <h3>Multiples by category</h3>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Category</th><th>Live comparables</th><th>Multiple</th></tr></thead>
+        <tbody id="mult-rows"></tbody>
+      </table>
+    </div>
+    <h3>What the board does not do</h3>
+    <ul class="notes">
+      <li>It does not predict whether or when a protocol issues a token. A protocol on the board records no token in DefiLlama's snapshot; that is not proof it has none.</li>
+      <li>It never special-cases a protocol by name. The same function scores every row, and the page recomputes each row's implied value from the snapshot figures and checks it against board.json.</li>
+      <li>Wrapped, staked and bridged products of a token that already trades are kept off the board, as is any protocol whose token already trades — those live in the Live tokens view.</li>
+      <li>Farm plans are steps with a cost and a time, derived from the protocol's category, chains, TVL and age. Never pay to claim: a real claim costs gas only, from the protocol's own page.</li>
+    </ul>
+  </section>
+</main>
+<footer>
+  <p>Token Radar · model <span id="modelver"></span> · snapshot <span id="asof"></span> from DefiLlama (api.llama.fi/protocols) · sealed, never updated · built deterministically from the snapshot: two runs write the same bytes.</p>
+</footer>
+<script src="../data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
